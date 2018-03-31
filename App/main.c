@@ -17,10 +17,8 @@
 #include "init.h"
 #include "tx_process.h"
  
-extern uint16  val_z, val_y; 
-uint8 _1MS_flag=0,heixian_flag_0=1;   //1MS时间标志
-int8   tingche_flag=0;
 /**************************************************/
+
 void PORTA_IRQHandler();
 void DMA0_IRQHandler();
 void sendimg(uint8 *imgaddr, uint32 imgsize);
@@ -28,10 +26,19 @@ void img_extract(uint8 *dst, uint8 *src, uint32 srclen);
 void PIT0_IRQHandler();
 void PIT1_IRQHandler();
 
+/**************************************************/
+
+extern uint16  val_z, val_y; 
+uint8 _1MS_flag=0,heixian_flag_0=1;   //1MS时间标志
+int8   tingche_flag=0;
+
 uint8 imgbuff[CAMERA_SIZE];    //定义存储接收图像的数组
 uint8 img[CAMERA_H][CAMERA_W];
 int16 gyro1;
 extern int32 angle_pwm;
+
+/**************************************************/
+
 void  main(void)
 {         
     //设置优先级分组,4bit 抢占优先级,没有亚优先级 
