@@ -1,16 +1,16 @@
 /**************************************************
  * @file       main.c
- * @brief      É½ÍâK60 Æ½Ì¨Ö÷³ÌÐò
- * @author     É½Íâ¿Æ¼¼
+ * @brief      å±±å¤–K60 å¹³å°ä¸»ç¨‹åº
+ * @author     å±±å¤–ç§‘æŠ€
  * @version    v5.2
  * @date       2015-05-28
- * author      ·ç»ð¶Ó
- * ±¸×¢        FXÓ²¼þ¸¡µãÒÑ¿ª
-               ³¬Æµ210M  Ö¡ÂÊ112  ½ÏÎÈ¶¨£¨¡Ì£© BUS 105M   ãÐÖµ 0X45
-               ±êÆµ150M  Ö¡ÂÊ75   ½ÏÎÈ¶¨
-//¶æ»úÖÐÖµ£º    845
-//×ó´òËÀ  :     953
-//ÓÒ´òËÀ£º      736
+ * author      é£Žç«é˜Ÿ
+ * å¤‡æ³¨        FXç¡¬ä»¶æµ®ç‚¹å·²å¼€
+               è¶…é¢‘210M  å¸§çŽ‡112  è¾ƒç¨³å®šï¼ˆâˆšï¼‰ BUS 105M   é˜ˆå€¼ 0X45
+               æ ‡é¢‘150M  å¸§çŽ‡75   è¾ƒç¨³å®š
+//èˆµæœºä¸­å€¼ï¼š   845
+//å·¦æ‰“æ­»  :    953
+//å³æ‰“æ­»ï¼š     736
  **************************************************/
 #include "common.h"
 #include "include.h" 
@@ -18,7 +18,7 @@
 #include "tx_process.h"
  
 extern uint16  val_z, val_y; 
-uint8 _1MS_flag=0,heixian_flag_0=1;   //1MSÊ±¼ä±êÖ¾
+uint8 _1MS_flag=0,heixian_flag_0=1;   //1MSæ—¶é—´æ ‡å¿—
 int8   tingche_flag=0;
 /**************************************************/
 void PORTA_IRQHandler();
@@ -27,97 +27,90 @@ void sendimg(uint8 *imgaddr, uint32 imgsize);
 void img_extract(uint8 *dst, uint8 *src, uint32 srclen);
 void PIT0_IRQHandler();
 void PIT1_IRQHandler();
-/************************************************************
- *    @brief      mainº¯Êý
-      v5.2
- *    @note       ÓÃÉ½ÍâÉãÏñÍ·ÊµÑéÐÞ¸Ä
-***********************************************************/
-uint8 imgbuff[CAMERA_SIZE];    //¶¨Òå´æ´¢½ÓÊÕÍ¼ÏñµÄÊý×é
+
+uint8 imgbuff[CAMERA_SIZE];    //å®šä¹‰å­˜å‚¨æŽ¥æ”¶å›¾åƒçš„æ•°ç»„
 uint8 img[CAMERA_H][CAMERA_W];
 int16 gyro1;
 extern int32 angle_pwm;
 void  main(void)
 {         
-    //ÉèÖÃÓÅÏÈ¼¶·Ö×é,4bit ÇÀÕ¼ÓÅÏÈ¼¶,Ã»ÓÐÑÇÓÅÏÈ¼¶ 
+    //è®¾ç½®ä¼˜å…ˆçº§åˆ†ç»„,4bit æŠ¢å ä¼˜å…ˆçº§,æ²¡æœ‰äºšä¼˜å…ˆçº§ 
     NVIC_SetPriorityGrouping(3);
-    NVIC_SetPriority(PORTA_IRQn,0);         //ÅäÖÃÓÅÏÈ¼¶
-   // NVIC_SetPriority(UART3_RX_TX_IRQn,0); //ÑÇÓÅÏÈ¼¶  ÔÚÏßµ÷²ÎÊýºÍÅäºÏFreecaleÉÏÎ»»ú
-    NVIC_SetPriority(PIT0_IRQn,1);          //ÅäÖÃÓÅÏÈ¼¶
-    NVIC_SetPriority(DMA0_IRQn,2);          //ÅäÖÃÓÅÏÈ¼¶
-    //NVIC_SetPriority(PIT1_IRQn,3);          //ÅäÖÃÓÅÏÈ¼¶
+    NVIC_SetPriority(PORTA_IRQn,0);         //é…ç½®ä¼˜å…ˆçº§
+    //NVIC_SetPriority(UART3_RX_TX_IRQn,0); //äºšä¼˜å…ˆçº§  åœ¨çº¿è°ƒå‚æ•°å’Œé…åˆFreecaleä¸Šä½æœº
+    NVIC_SetPriority(PIT0_IRQn,1);          //é…ç½®ä¼˜å…ˆçº§
+    NVIC_SetPriority(DMA0_IRQn,2);          //é…ç½®ä¼˜å…ˆçº§
+    //NVIC_SetPriority(PIT1_IRQn,3);        //é…ç½®ä¼˜å…ˆçº§
 
     FTM_init();
     DangWei_();
-    //Òº¾§³õÊ¼»¯
-    Site_t site     = {0, 0}  ;                           //ÏÔÊ¾Í¼Ïñ×óÉÏ½ÇÎ»ÖÃ
-    Size_t imgsize  = {CAMERA_W, CAMERA_H} ;             //Í¼Ïñ´óÐ¡
+    //æ¶²æ™¶åˆå§‹åŒ–
+    Site_t site     = {0, 0}  ;                           //æ˜¾ç¤ºå›¾åƒå·¦ä¸Šè§’ä½ç½®
+    Size_t imgsize  = {CAMERA_W, CAMERA_H} ;              //å›¾åƒå¤§å°
     Size_t size;  
-    //ÏÔÊ¾ÇøÓòÍ¼Ïñ´óÐ¡         
+    //æ˜¾ç¤ºåŒºåŸŸå›¾åƒå¤§å°         
      LCD_init();   
      size.H = CAMERA_H;
      size.W = CAMERA_W;
-    //Òº¾§³õÊ¼»¯½áÊø
-    camera_init(imgbuff);                                   //ÅäÖÃÖÐ¶Ï¸´Î»º¯Êý
+    //æ¶²æ™¶åˆå§‹åŒ–ç»“æŸ
+    camera_init(imgbuff);                                   //é…ç½®ä¸­æ–­å¤ä½å‡½æ•°
     
     //set_vector_handler(UART3_RX_TX_VECTORn , uart3_test_handler);
     //uart_rx_irq_en(UART3); 
     
-    set_vector_handler(PORTA_VECTORn , PORTA_IRQHandler);   //ÉèÖÃLPTMRµÄÖÐ¶Ï¸´Î»º¯ÊýÎª PORTA_IRQHandler
-    set_vector_handler(DMA0_VECTORn  , DMA0_IRQHandler);     //ÉèÖÃLPTMRµÄÖÐ¶Ï¸´Î»º¯ÊýÎª PORTA_IRQHandler
-    pit_init_ms(PIT0,4);                                               //pit ¶¨Ê±ÖÐ¶Ï(ÓÃÓÚ°´¼ü¶¨Ê±É¨Ãè)
-    set_vector_handler(PIT0_VECTORn ,PIT0_IRQHandler);                  //ÉèÖÃ PIT0 µÄÖÐ¶Ï·þÎñº¯ÊýÎª 
+    set_vector_handler(PORTA_VECTORn , PORTA_IRQHandler);   //è®¾ç½®LPTMRçš„ä¸­æ–­å¤ä½å‡½æ•°ä¸º PORTA_IRQHandler
+    set_vector_handler(DMA0_VECTORn  , DMA0_IRQHandler);    //è®¾ç½®LPTMRçš„ä¸­æ–­å¤ä½å‡½æ•°ä¸º PORTA_IRQHandler
+    pit_init_ms(PIT0,4);                                    //pit å®šæ—¶ä¸­æ–­(ç”¨äºŽæŒ‰é”®å®šæ—¶æ‰«æ)
+    set_vector_handler(PIT0_VECTORn ,PIT0_IRQHandler);      //è®¾ç½® PIT0 çš„ä¸­æ–­æœåŠ¡å‡½æ•°ä¸º 
     enable_irq(PIT0_IRQn);
     
-    /*********************** °´¼üÏûÏ¢ ³õÊ¼»¯  ***********************/
-   //  key_event_init();                                                   //°´¼üÏûÏ¢³õÊ¼»¯
-   //  pit_init_ms(PIT1,10);                                               //pit ¶¨Ê±ÖÐ¶Ï(ÓÃÓÚ°´¼ü¶¨Ê±É¨Ãè)
-   //  set_vector_handler(PIT1_VECTORn ,PIT1_IRQHandler);                  //ÉèÖÃ PIT0 µÄÖÐ¶Ï¸´Î»º¯ÊýÎª PIT0_IRQHandler
-   //  enable_irq(PIT1_IRQn);
-    /*********************** °´¼üÏûÏ¢ ³õÊ¼»¯  ***********************/
+    /*********************** æŒ‰é”®æ¶ˆæ¯ åˆå§‹åŒ–  ***********************/
+    key_event_init();                  //æŒ‰é”®æ¶ˆæ¯åˆå§‹åŒ–
+    pit_init_ms(PIT1,10);              //pit å®šæ—¶ä¸­æ–­(ç”¨äºŽæŒ‰é”®å®šæ—¶æ‰«æ)
+    set_vector_handler(PIT1_VECTORn ,PIT1_IRQHandler);   //è®¾ç½® PIT0 çš„ä¸­æ–­å¤ä½å‡½æ•°ä¸º PIT0_IRQHandler
+    enable_irq(PIT1_IRQn);
+    /**************************** ä¸»å¾ªçŽ¯ ***************************/
     while(1)
     {
             
          // PTD15_OUT=0;
-            camera_get_img();                                       //9MS  ÉãÏñÍ·»ñÈ¡Í¼Ïñ
+            camera_get_img();                                         //9MS  æ‘„åƒå¤´èŽ·å–å›¾åƒ
           
             if(PTA12_IN==1&&PTA13_IN==1&&PTA14_IN==1&&PTA15_IN==1&&PTA16_IN==1&&PTA17_IN==1)
             {
-              if( CAMERA_COLOR == 0)                                //Ñ¡ÔñºÚ°×ÉãÏñÍ·
+              if( CAMERA_COLOR == 0)                                  //é€‰æ‹©é»‘ç™½æ‘„åƒå¤´
               LCD_Img_Binary_Z(site, size, imgbuff, imgsize);  
-            }                                                        //ÏÔÊ¾Í¼Ïñ
-            img_extract((uint8 *)img,(uint8 *)imgbuff, CAMERA_SIZE);  //Ñ°Á½±ßºÚÏß£¬ÔÙÖÐÏß»ñÈ¡       
+            }                                                         //æ˜¾ç¤ºå›¾åƒ
+            img_extract((uint8 *)img,(uint8 *)imgbuff, CAMERA_SIZE);  //å¯»ä¸¤è¾¹é»‘çº¿ï¼Œå†ä¸­çº¿èŽ·å–       
             PROCESS();
-         // send_to_scope();      //³µÔÚÔËÐÐÊ±²»ÒªÓÃÀ¶ÑÀ½ÓÊÕÊý¾Ý
+         // send_to_scope();      //è½¦åœ¨è¿è¡Œæ—¶ä¸è¦ç”¨è“ç‰™æŽ¥æ”¶æ•°æ®
          // deal_key_event();
          // PTD15_OUT=1;
     }
-}    
-//¶æ»úÖÐÖµ£º    845
-//×ó´òËÀ  :     953
-//ÓÒ´òËÀ£º      736
+}   
 
-void PIT0_IRQHandler()   //4MS½øÈëÒ»´ÎÖÐ¶Ï    20MS¿ØÖÆ¶æ»ú´ò½ÇÒ»´Î   »ñÈ¡Ò»´ÎËÙ¶È   ¿ØÖÆµç»úÒ»´Î
+/***************************************************************
+   4MSè¿›å…¥ä¸€æ¬¡ä¸­æ–­    20MSæŽ§åˆ¶èˆµæœºæ‰“è§’ä¸€æ¬¡   èŽ·å–ä¸€æ¬¡é€Ÿåº¦   æŽ§åˆ¶ç”µæœºä¸€æ¬¡
+****************************************************************/
+
+void PIT0_IRQHandler()  
 {   
             JianChe();              
             if(PTD0_IN&&PTD1_IN)
-            {
                 heixian_flag_0=0; 
-            }
             else
                 heixian_flag_0=1;
             if(PTD6_IN)
-            {
                 tingche_flag=1;
-            }
             
             _1MS_flag=_1MS_flag+1;
             if(_1MS_flag==5)   
             {
-               if( angle_pwm>DJ_zuo )  angle_pwm=DJ_zuo ;      //À©´ó·¶Î§0¡ª330
+               if( angle_pwm>DJ_zuo )  angle_pwm=DJ_zuo ;      //æ‰©å¤§èŒƒå›´0â€”330
                if( angle_pwm<DJ_you )  angle_pwm=DJ_you ;   
-               ftm_pwm_duty(S3010_FTM,S3010_CH,angle_pwm);      // ¶æ»ú´ò½Ç
+               ftm_pwm_duty(S3010_FTM,S3010_CH,angle_pwm);     // èˆµæœºæ‰“è§’
          
-               gyro1 = adc_once(Gyro1,ADC_8bit);                //½ÇËÙ¶È
+               gyro1 = adc_once(Gyro1,ADC_8bit);                //è§’é€Ÿåº¦
                
                get_speed();
                Speed_Contorl();
@@ -126,63 +119,62 @@ void PIT0_IRQHandler()   //4MS½øÈëÒ»´ÎÖÐ¶Ï    20MS¿ØÖÆ¶æ»ú´ò½ÇÒ»´Î   »ñÈ¡Ò»´ÎËÙ¶
              PIT_Flag_Clear(PIT0);
 }
 
-
-void PIT1_IRQHandler()  //10MS½øÈëÒ»´ÎÖÐ¶Ï    ²¶»ñ°´¼ü×´Ì¬  ´¥·¢°´¼üÖÐ¶Ï
+/***************************************************************
+         10MSè¿›å…¥ä¸€æ¬¡ä¸­æ–­    æ•èŽ·æŒ‰é”®çŠ¶æ€  è§¦å‘æŒ‰é”®ä¸­æ–­
+****************************************************************/
+void PIT1_IRQHandler()  
 {
     key_IRQHandler();
-
     PIT_Flag_Clear(PIT1);
 }
 
 
 void PORTA_IRQHandler()
 {
-    uint8  n;    //Òý½ÅºÅ
+    uint8  n;    //å¼•è„šå·
     uint32 flag;
     while(!PORTA_ISFR);
     flag = PORTA_ISFR;
-    PORTA_ISFR  = ~0;                                   //ÇåÖÐ¶Ï±êÖ¾Î»
+    PORTA_ISFR  = ~0;                                   //æ¸…ä¸­æ–­æ ‡å¿—ä½
 
-    n = 29;                                             //³¡ÖÐ¶Ï
-    if(flag & (1 << n))                                 //PTA29´¥·¢ÖÐ¶Ï
-    {
+    n = 29;                                             //åœºä¸­æ–­
+    if(flag & (1 << n))                                 //PTA29è§¦å‘ä¸­æ–­
         camera_vsync();
-    }
-#if ( CAMERA_USE_HREF == 1 )                            //Ê¹ÓÃÐÐÖÐ¶Ï
+#if ( CAMERA_USE_HREF == 1 )                            //ä½¿ç”¨è¡Œä¸­æ–­
     n = 28;
-    if(flag & (1 << n))                                 //PTA28´¥·¢ÖÐ¶Ï
-    {
+    if(flag & (1 << n))                                 //PTA28è§¦å‘ä¸­æ–­
         camera_href();
-    }
 #endif
 }
-/*
- *  @brief      DMA0ÖÐ¶Ï·þÎñº¯Êý
- *  @since      v5.0
- */
+
+/*****  @brief DMA0ä¸­æ–­æœåŠ¡å‡½æ•°   ****/
+ 
 void DMA0_IRQHandler()
 {
       camera_dma();
 }
 
-//·¢ËÍÍ¼Ïñµ½ÉÏÎ»»úÏÔÊ¾
-//²»Í¬µÄÉÏÎ»»ú£¬²»Í¬µÄÃüÁî£¬ÕâÀïÊ¹ÓÃ yy_ÉãÏñÍ·´®¿Úµ÷ÊÔ Èí¼þ
-//Èç¹ûÊ¹ÓÃÆäËûÉÏÎ»»ú£¬ÔòÐèÒªÐÞ¸Ä´úÂë
+/***************************************************************
+       å‘é€å›¾åƒåˆ°ä¸Šä½æœºæ˜¾ç¤º
+       ä¸åŒçš„ä¸Šä½æœºï¼Œä¸åŒçš„å‘½ä»¤ï¼Œè¿™é‡Œä½¿ç”¨ yy_æ‘„åƒå¤´ä¸²å£è°ƒè¯• è½¯ä»¶
+       å¦‚æžœä½¿ç”¨å…¶ä»–ä¸Šä½æœºï¼Œåˆ™éœ€è¦ä¿®æ”¹ä»£ç 
+****************************************************************/
+
 void sendimg(uint8 *imgaddr, uint32 imgsize)
 {
-    uint8 cmd[4] = {0, 255, 1, 0 };    //yy_ÉãÏñÍ·´®¿Úµ÷ÊÔ Ê¹ÓÃµÄÃüÁî
-
-    uart_putbuff(VCAN_PORT, cmd, sizeof(cmd));    //ÏÈ·¢ËÍÃüÁî
-
-    uart_putbuff(VCAN_PORT, imgaddr, imgsize); //ÔÙ·¢ËÍÍ¼Ïñ
+    uint8 cmd[4] = {0, 255, 1, 0 };    //yy_æ‘„åƒå¤´ä¸²å£è°ƒè¯• ä½¿ç”¨çš„å‘½ä»¤
+    uart_putbuff(VCAN_PORT, cmd, sizeof(cmd));    //å…ˆå‘é€å‘½ä»¤
+    uart_putbuff(VCAN_PORT, imgaddr, imgsize); //å†å‘é€å›¾åƒ
 }
 
-//Ñ¹Ëõ¶þÖµ»¯Í¼Ïñ½âÑ¹£¨¿Õ¼ä »» Ê±¼ä ½âÑ¹£©
-//srclen ÊÇ¶þÖµ»¯Í¼ÏñµÄÕ¼ÓÃ¿Õ¼ä´óÐ¡
-void img_extract(uint8 *dst, uint8 *src, uint32 srclen)      //½âÑ¹Îª¶þÎ¬Êý×é
-{
-    uint8 colour[2] = {1,0}; //0 ºÍ 1 ·Ö±ð¶ÔÓ¦µÄÑÕÉ«
-    //×¢£ºÉ½ÍâµÄÉãÏñÍ· 0 ±íÊ¾ °×É«£¬1 ±íÊ¾ºÚÉ«
+/***************************************************************
+      åŽ‹ç¼©äºŒå€¼åŒ–å›¾åƒè§£åŽ‹ï¼ˆç©ºé—´ æ¢ æ—¶é—´ è§£åŽ‹ï¼‰
+      srclen æ˜¯äºŒå€¼åŒ–å›¾åƒçš„å ç”¨ç©ºé—´å¤§å°
+****************************************************************/
+
+void img_extract(uint8 *dst, uint8 *src, uint32 srclen)   
+    uint8 colour[2] = {1,0}; //0 å’Œ 1 åˆ†åˆ«å¯¹åº”çš„é¢œè‰²
+    //æ³¨ï¼šå±±å¤–çš„æ‘„åƒå¤´ 0 è¡¨ç¤º ç™½è‰²ï¼Œ1 è¡¨ç¤ºé»‘è‰²
     uint8 tmpsrc;
     while(srclen --)
     {
